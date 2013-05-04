@@ -1,0 +1,31 @@
+PROBLEM:
+
+An Archival Atrocity
+
+Dr. Scripto is in a tizzy! It seems that someone has allowed a series of application log files to pile up for around two years, and they’re starting to put the pinch on free disk space on a server. Your job is to help get the old files off to a new location.
+
+Actually, this happened last week, too. You might as well create a tool to do the archiving.
+
+The current set of log files are located in C:\Application\Log. There are three applications that write logs here, and each uses its own subfolder. For example, C:\Application\Log\App1, C:\Application\Log\OtherApp, and C:\Application\Log\ThisAppAlso. Within those subfolders, the filenames are random GUIDs with a .log filename extension. After they are created on disk, the files are never touched again by the applications.
+
+SOLUTION:
+
+Constants:
+GUID Regex pattern: "^[\d|a-fA-F]{8}-[\d|a-fA-F]{4}-[\d|a-fA-F]{4}-\d|a-fA-F]{4}-\d|a-fA-F]{12}\.log$"
+
+Variables:
+BaseSourceFolder: "C:\Application\Log"
+BaseDestinationFolder: "\\remote01\archive"
+SubFolders: string[] { "App1", "OtherApp", "ThisAppAlso" }
+Credentials: ??
+
+Feedback:
+- Base directory doesn't exist (fail)
+- Don't have permission to delete file (warn)
+- Don't have permission to write to destination (warn)
+- App directory doesn't exist (warn)
+- Number of logs deleted and from which app(on success)
+
+Notes:
+- Don't have to worry about concurrent access as this is the only app which accesses the logs.
+- Two years of logs, try batching them e.g. read file names and dispatch to worker threads, batch size configurable by size (memory, not file count)
