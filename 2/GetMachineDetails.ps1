@@ -1,22 +1,29 @@
 ﻿<#
  
 .SYNOPSIS
-This gets CPU and OS information about a machine
+Gets CPU, memory and operating system information about a machine
  
 .DESCRIPTION
+This will try to get operating system, memory and CPU information from a machine. It uses CIM over DCOM to communicate with the remote machine. Before attempting to retrive information, the target machine will 
+be pinged once to ensure it is available. A CIM session is esablished to reduce connection overhead. 
+The information returned is limited to statistics which are accurate accross all versions of Windows from Server 2000 onward. This means only the number of physical processors can be retrieved.
+The output can be exported to CSV or displayed as a table to the host.
 
+.PARAMETER ComputerName
+The name of the computer which will be queries for information. This can be a local machine or accross the network. It must run Windows 2000 or higher
  
+.PARAMETER Path
+The destination csv location. If this is provided the resultant mahine information will be saved the CSV. Otherwise it will be directed to the host.
+
 .EXAMPLE
 'COMPUTER1', 'localhost', 'SERVER1' | Get-MachineInfo
-
+This queries three computers and outputs to the screen
 
 'COMPUTER1', 'localhost', 'SERVER1' | Get-MachineInfo -Path Output.csv
- 
-.NOTES
-Cannot reliably get NumberOfLogicalProcessors or NumberOfCores http://support.microsoft.com/kb/932370 
+This queries three computers and outputs to a CSV
  
 .LINK
- 
+http://support.microsoft.com/kb/932370 
 #>
 Function Get-MachineInfo
 {
@@ -45,6 +52,8 @@ Function Get-MachineInfo
                 }
             }
         }
+
+        $ErrorActionPreference = "Stop"
     }
     
     process {
@@ -58,7 +67,7 @@ Function Get-MachineInfo
         }
         catch
         {
-            Write-Error "Error Connecting to $ComputerName $_.Message"
+            Write-Error "Error Connecting to '$ComputerName' $_.Message"
             return
         }
 
@@ -66,13 +75,13 @@ Function Get-MachineInfo
         {
             Write-Verbose "Perform operation 'Establish CIM Session' with following parameters, ''ComputerName' = $ComputerName, 'protocol' = DCOM"
             $sessionOption = New-CimSessionOption –Protocol DCOM
-            $session = New-CImSession -ComputerName $computerName -SessionOption $sessionOption
+            $session = New-CImSession -ComputerName $computerName -SessionOption $sessionOption 
             Write-Verbose "Operation 'Establish CIM Session' complete"
 
         }
         catch
         {
-            Write-Error "ERROR: $($_.Exception.Message)"
+            Write-Error "Error establishing CIM session $($_.Exception.Message)"
             return
         }
 
@@ -96,7 +105,7 @@ Function Get-MachineInfo
             'OSName'= "$($os.Caption) $($os.CSDVersion)"
             'OSVersion' = $os.Version
             'Memory'= $Memory
-            'Processors' = $csInfo.NumberOfProcessors
+            'Processors' = $csInfo.NumberOfProcessors 
         }
         
         $rows += New-Object –TypeName PSObject –Property $properties
