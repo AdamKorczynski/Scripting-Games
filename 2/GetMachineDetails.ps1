@@ -113,7 +113,6 @@ Function Get-MachineInfo
 
     end {
 
-
         Write-Verbose "$($rows.Length) device(s) found"
 
         if($Path.Length -gt 0)
